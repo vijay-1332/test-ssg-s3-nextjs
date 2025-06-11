@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  next-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the application code
+      - .:/app
+      # Use a volume for node_modules to prevent host node_modules from overwriting
+      # and to persist node_modules installed in the container
+      - /app/node_modules
+      # Persist the .next folder for build cache
+      - /app/.next
+    env_file:
+      - .env.local
+    # Ensure the container stays running in development
+    # The CMD in Dockerfile.dev already handles this ("npm run dev")
+    # but tty and stdin_open can be useful for interactive sessions if needed later.
+    # stdin_open: true
+    # tty: true

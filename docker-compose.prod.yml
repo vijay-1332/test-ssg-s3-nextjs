@@ -1,0 +1,22 @@
+services:
+  next-app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile # Uses the production Dockerfile
+      args:
+        # This will take the value from your .env.local or your shell environment
+        NEXT_PUBLIC_GRAPHQL_ENDPOINT_ARG: ${NEXT_PUBLIC_GRAPHQL_ENDPOINT}
+    image: nextjs-ecs-demo-prod # You can name your production image
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    # For production, you generally don't mount volumes for the application code
+    # as it's already copied into the image during the build process.
+    # However, if you have specific persistent data needs outside the image,
+    # you might add volumes here (e.g., for uploads if not using S3 directly).
+
+networks:
+  default:
+    name: nextjs-prod-network

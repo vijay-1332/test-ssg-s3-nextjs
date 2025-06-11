@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Next.js build output
+.next
+
+# Docker
+Dockerfile
+Dockerfile.dev
+docker-compose.yml
+
+# VSCode
+.vscode
+
+# Environment files (handle these with Docker secrets or env_file in compose)
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# Jenkins
+Jenkinsfile
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Readme (optional, include if not needed in the image)
+README.md

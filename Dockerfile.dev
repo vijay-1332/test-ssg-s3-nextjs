@@ -1,0 +1,27 @@
+# Dockerfile.dev
+
+# Use an official Node runtime as a parent image
+# Using a specific version like 20-alpine is good practice
+FROM node:20-alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock / pnpm-lock.yaml)
+# This step is done to leverage Docker's cache. If these files haven't changed,
+# Docker won't re-run the npm install step below if they are copied separately.
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+# Using npm ci is recommended if you have a package-lock.json for reproducible builds
+RUN npm ci
+
+# The application source code will be mounted into the container using a volume.
+# This means you don't need to COPY the rest of your source code here,
+# as changes on your host machine will be reflected inside the container.
+
+# Make port 3000 available to the host machine
+EXPOSE 3000
+
+# Define the command to run your Next.js development server
+CMD ["npm", "run", "dev"]

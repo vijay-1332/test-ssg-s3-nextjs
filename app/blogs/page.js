@@ -1,23 +1,41 @@
 import Link from 'next/link';
 import Blog from './_components/Blog';
-import createApolloClient from '../../lib/apolloClient'; // Import Apollo Client
-import { GET_BLOGS } from '../../graphql/client/blogQueries'; // Import GET_BLOGS query
 import { Suspense } from 'react';
+import { connectToDatabase } from '../../lib/mongo'; // ADDED: For direct DB access
+
+// Helper function to fetch blogs directly from MongoDB
+async function getBlogsDirectly() {
+  try {
+    const db = await connectToDatabase();
+    const blogsFromDB = await db.collection('blogs').find({}).toArray();
+    // Map to the structure expected by the component (similar to your GraphQL resolver)
+    return blogsFromDB.map(blog => ({
+      ...blog, // Spread original blog data
+      id: blog._id.toString(), // Ensure 'id' is the string representation of '_id'
+      // If your Blog component or other logic relies on _id as a string, ensure it's mapped:
+      // _id: blog._id.toString(), 
+      createdAt: blog.createdAt ? new Date(blog.createdAt).toISOString() : null, // Ensure createdAt is a string
+    }));
+  } catch (dbError) {
+    console.error("Error fetching blogs directly from DB:", dbError);
+    // Return an object indicating an error, or throw the error
+    // to be caught by Next.js error handling or an ErrorBoundary
+    return { error: true, message: dbError.message };
+  }
+}
 
 async function BlogPosts() {
-  // Create a new Apollo Client instance for each server-side request
-  // This is important for preventing data leakage between users or requests
-  const client = createApolloClient();
+  const blogsOrError = await getBlogsDirectly();
 
-  // Fetching data from your GraphQL API
-  const { data, loading, error } = await client.query({
-    query: GET_BLOGS,
-  });
+  if (blogsOrError.error) {
+    return <p>Error loading blogs: {blogsOrError.message}</p>;
+  }
 
-  if (loading) return <p>Loading blogs...</p>;
-  if (error) return <p>Error loading blogs: {error.message}</p>;
+  const blogs = blogsOrError;
 
-  const blogs = data.blogs;
+  // The explicit loading state (if (loading) return <p>Loading...</p>;)
+  // is handled by the <Suspense> boundary in BlogListPage when using direct async/await
+  // in Server Components.
 
   return (
     <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
