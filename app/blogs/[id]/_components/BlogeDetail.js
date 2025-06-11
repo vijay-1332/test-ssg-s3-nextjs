@@ -9,7 +9,7 @@ export default function BlogDetail({ blog }) {
             <h2 className="text-xl font-semibold mb-2 text-gray-800">
                 {blog?.title||'title'}
             </h2>
-            <p className="text-gray-600 mb-4">{blog?.body||'no data found'}...</p>
+            <p className="text-gray-600 mb-4">{blog?.content||'no data found'}...</p>
             <Link
                 href={`/blogs`}
                 className="text-blue-500 hover:text-blue-600 font-medium"

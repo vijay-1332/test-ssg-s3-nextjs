@@ -1,25 +1,38 @@
 // app/blogs/[id]/page.js
-import BlogDetail from './_components/BlogeDetail';
+import { notFound } from 'next/navigation';
+import createApolloClient from '../../../lib/apolloClient';
+import { GET_BLOG_BY_ID } from '../../../graphql/client/blogQueries'; // Removed GET_BLOGS as it was only for generateStaticParams
+import BlogDetail from './_components/BlogeDetail'; // Corrected component name assuming it's BlogDetail.js
+import { Suspense } from 'react';
 
-export async function generateStaticParams() {
-  const res = await fetch('https://jsonplaceholder.typicode.com/posts');
-  const posts = await res.json();
-  return posts.slice(0, 5).map((post) => ({
-    id: post.id.toString(),
-  }));
-}
+// Removed generateStaticParams function to make the page fully dynamic
 
-async function BlogPost({ params }) {
-  const awaitedParams = await params; // Await the params object
-  const { id } = awaitedParams;
-  const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
-  const blog = await res.json();
-  console.log(blog, 'blog');
-  if (!blog) {
-    notFound(); // Import { notFound } from 'next/navigation'
+async function BlogPostData({ id }) {
+  const client = createApolloClient();
+  const { data, loading, error } = await client.query({
+    query: GET_BLOG_BY_ID,
+    variables: { id },
+  });
+
+  if (loading) return <p>Loading blog post...</p>;
+  // Error handling: if error or no data, trigger notFound
+  // This is important for generateStaticParams, as it expects pages to exist or return 404
+  if (error || !data || !data.blog) {
+    console.error('Error fetching blog by ID:', error ? error.message : 'Blog not found');
+    notFound();
   }
 
-  return <BlogDetail blog={blog} />;
+  return <BlogDetail blog={data.blog} />;
 }
 
-export default BlogPost;
+export default async function BlogPostPage({ params }) {
+  const { id } =await params;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <Suspense fallback={<p>Loading blog post...</p>}>
+        <BlogPostData id={id} />
+      </Suspense>
+    </div>
+  );
+}
